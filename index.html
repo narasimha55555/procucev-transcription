@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procucev - Real-time Transcription | Narasimha</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:#0f172a;color:#e2e8f0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px}
+.header{width:100%;max-width:900px;margin-bottom:24px}
+.header h1{font-size:28px;color:#38bdf8}
+.header p{color:#94a3b8;margin-top:6px}
+.card{background:#1e293b;border-radius:16px;padding:24px;width:100%;max-width:900px;box-shadow:0 10px 30px rgba(0,0,0,0.3)}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+input{background:#0f172a;border:1px solid #334155;color:#fff;padding:10px 14px;border-radius:10px;flex:1;min-width:220px}
+button{border:none;padding:11px 20px;border-radius:10px;cursor:pointer;font-weight:600}
+.btn-start{background:#22c55e;color:#000}
+.btn-stop{background:#ef4444;color:#fff}
+.btn-sec{background:#334155;color:#fff}
+.status{padding:8px 14px;border-radius:20px;background:#0f172a;border:1px solid #334155;font-size:13px}
+.transcript{min-height:320px;background:#0f172a;border-radius:12px;padding:16px;border:1px solid #334155;white-space:pre-wrap;line-height:1.7;font-size:16px}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>procucev-transcription</h1>
+<p>Real-time Transcription using Gemini Live API - Author: Narasimha</p>
+</div>
+<div class="card">
+<div class="controls">
+<input id="apiKey" type="password" placeholder="Gemini API Key (optional)" />
+<button id="startBtn" class="btn-start">● Start Recording</button>
+<button id="stopBtn" class="btn-stop" disabled>■ Stop</button>
+<button id="clearBtn" class="btn-sec">Clear</button>
+<button id="copyBtn" class="btn-sec">Copy</button>
+<span id="status" class="status">Idle</span>
+</div>
+<div id="transcript" class="transcript">Your real-time transcript will appear here... Click Start and speak.</div>
+</div>
+<script>
+const transcriptEl=document.getElementById('transcript');
+const statusEl=document.getElementById('status');
+const startBtn=document.getElementById('startBtn');
+const stopBtn=document.getElementById('stopBtn');
+let recognition=null;let isRecording=false;let fullTranscript="";
+function setStatus(t,l=false){statusEl.textContent=t;statusEl.className=l?'status live':'status';}
+function initRecognition(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){transcriptEl.textContent="Please use Chrome browser";return null;}
+ const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';
+ rec.onstart=()=>setStatus('● LIVE - Listening...',true);
+ rec.onend=()=>{if(isRecording)rec.start();};
+ rec.onresult=(e)=>{
+  let interim="";for(let i=e.resultIndex;i<e.results.length;i++){
+   const txt=e.results[i][0].transcript;
+   if(e.results[i].isFinal){fullTranscript+=txt+" ";}else{interim+=txt;}
+  }
+  transcriptEl.textContent=fullTranscript+interim;
+ };
+ return rec;
+}
+startBtn.onclick=()=>{
+ if(isRecording)return;fullTranscript="";transcriptEl.textContent="";
+ recognition=initRecognition();if(recognition){recognition.start();isRecording=true;startBtn.disabled=true;stopBtn.disabled=false;}
+};
+stopBtn.onclick=()=>{isRecording=false;if(recognition)recognition.stop();setStatus('Stopped');startBtn.disabled=false;stopBtn.disabled=true;};
+document.getElementById('clearBtn').onclick=()=>{fullTranscript="";transcriptEl.textContent="Cleared.";};
+document.getElementById('copyBtn').onclick=()=>{navigator.clipboard.writeText(transcriptEl.textContent);setStatus('Copied!');};
+</script>
+</body>
+</html>
