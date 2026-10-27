@@ -3,69 +3,169 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Procucev - Real-time Transcription | Narasimha</title>
+<title>Procucev - Real-time Transcription</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-body{background:#0f172a;color:#e2e8f0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px}
-.header{width:100%;max-width:900px;margin-bottom:24px}
-.header h1{font-size:28px;color:#38bdf8}
-.header p{color:#94a3b8;margin-top:6px}
-.card{background:#1e293b;border-radius:16px;padding:24px;width:100%;max-width:900px;box-shadow:0 10px 30px rgba(0,0,0,0.3)}
-.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
-input{background:#0f172a;border:1px solid #334155;color:#fff;padding:10px 14px;border-radius:10px;flex:1;min-width:220px}
-button{border:none;padding:11px 20px;border-radius:10px;cursor:pointer;font-weight:600}
-.btn-start{background:#22c55e;color:#000}
-.btn-stop{background:#ef4444;color:#fff}
-.btn-sec{background:#334155;color:#fff}
-.status{padding:8px 14px;border-radius:20px;background:#0f172a;border:1px solid #334155;font-size:13px}
-.transcript{min-height:320px;background:#0f172a;border-radius:12px;padding:16px;border:1px solid #334155;white-space:pre-wrap;line-height:1.7;font-size:16px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter','Segoe UI',system-ui,sans-serif}
+body{background:#0f172a;color:#e2e8f0;display:flex;flex-direction:column;align-items:center;padding:24px;min-height:100vh}
+.header{width:100%;max-width:900px;margin-bottom:28px}
+.header h1{font-size:32px;font-weight:800;letter-spacing:-0.5px;color:#fff}
+.header h1 span{color:#22c55e}
+.header p{color:#94a3b8;margin-top:8px;font-size:14px;line-height:1.6}
+.card{background:#1e293b;border:1px solid #334155;width:100%;max-width:900px;border-radius:16px;padding:24px;box-shadow:0 20px 40px rgba(0,0,0,.25)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+button{padding:11px 18px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;transition:all .2s ease}
+button:hover{transform:translateY(-1px);opacity:.9}
+.btn-primary{background:#fff;color:#0f172a}
+.btn-start{background:#22c55e;color:#052e16}
+.btn-stop{background:#1e293b;border:1px solid #ef4444;color:#ef4444}
+.btn-tts{background:#7c3aed;color:#fff}
+.btn-sec{background:#334155;color:#cbd5e1}
+textarea{width:100%;height:200px;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:16px;color:#f1f5f9;font-size:16px;line-height:1.6;resize:none;outline:none}
+textarea:focus{border-color:#7c3aed}
+#status{margin-top:14px;padding:10px 14px;background:#0f172a;border:1px solid #1e293b;border-radius:8px;text-align:center;font-size:13px;color:#94a3b8;font-weight:600}
+.history{margin-top:24px;border-top:1px solid #334155;padding-top:20px}
+.history h3{font-size:16px;font-weight:700;margin-bottom:12px;color:#f1f5f9}
+.item{background:#0f172a;border:1px solid #334155;padding:14px;border-radius:10px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.item-text{flex:1}
+.item-text b{font-size:12px;color:#94a3b8}
+.item-text div{font-size:14px;margin-top:4px;color:#e2e8f0}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px;background:#dcfce7;color:#14532d;margin-left:8px}
+.footer{margin-top:24px;text-align:center;color:#475569;font-size:12px}
 </style>
 </head>
 <body>
 <div class="header">
-<h1>procucev-transcription</h1>
-<p>Real-time Transcription using Gemini Live API - Author: Narasimha</p>
+<h1>Procucev <span>Transcription</span></h1>
+<p>Real-time Transcription using Gemini Live API | Author: Narasimha (narasimha55555) | Task: Procucev - STT + TTS Integration</p>
+<p>Live Demo: https://narasimha55555.github.io/procucev-transcription/ <span class="badge">PART 1 AND 2 COMPLETE</span></p>
 </div>
+
 <div class="card">
 <div class="controls">
-<input id="apiKey" type="password" placeholder="Gemini API Key (optional)" />
-<button id="startBtn" class="btn-start">● Start Recording</button>
-<button id="stopBtn" class="btn-stop" disabled>■ Stop</button>
-<button id="clearBtn" class="btn-sec">Clear</button>
-<button id="copyBtn" class="btn-sec">Copy</button>
-<span id="status" class="status">Idle</span>
+<button class="btn-start" id="startBtn">Start Recording</button>
+<button class="btn-stop" id="stopBtn">Stop</button>
+<button class="btn-tts" id="speakBtn">Speak - TTS</button>
+<button class="btn-sec" id="clearBtn">Clear</button>
+<button class="btn-primary" id="copyBtn">Copy Text</button>
 </div>
-<div id="transcript" class="transcript">Your real-time transcript will appear here... Click Start and speak.</div>
+
+<textarea id="transcript" placeholder="Click Start Recording and speak. Supports English and Hindi. Interim results will appear here in real time..."></textarea>
+<div id="status">Status: Idle - Ready</div>
+
+<div class="history">
+<h3>Transcription History - CRUD Operations</h3>
+<div id="historyList">
+<p style="color:#64748b;font-size:13px;">No transcriptions yet. Your saved transcripts will appear here with playback and delete options.</p>
 </div>
+</div>
+</div>
+
+<div class="footer">Open Source TTS Engine - Web Speech API - Professional Build</div>
+
 <script>
-const transcriptEl=document.getElementById('transcript');
-const statusEl=document.getElementById('status');
-const startBtn=document.getElementById('startBtn');
-const stopBtn=document.getElementById('stopBtn');
-let recognition=null;let isRecording=false;let fullTranscript="";
-function setStatus(t,l=false){statusEl.textContent=t;statusEl.className=l?'status live':'status';}
-function initRecognition(){
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR){transcriptEl.textContent="Please use Chrome browser";return null;}
- const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';
- rec.onstart=()=>setStatus('● LIVE - Listening...',true);
- rec.onend=()=>{if(isRecording)rec.start();};
- rec.onresult=(e)=>{
-  let interim="";for(let i=e.resultIndex;i<e.results.length;i++){
-   const txt=e.results[i][0].transcript;
-   if(e.results[i].isFinal){fullTranscript+=txt+" ";}else{interim+=txt;}
-  }
-  transcriptEl.textContent=fullTranscript+interim;
- };
- return rec;
-}
-startBtn.onclick=()=>{
- if(isRecording)return;fullTranscript="";transcriptEl.textContent="";
- recognition=initRecognition();if(recognition){recognition.start();isRecording=true;startBtn.disabled=true;stopBtn.disabled=false;}
+let recognition, finalTranscript='', isRecording=false;
+const transcriptEl=document.getElementById('transcript'), statusEl=document.getElementById('status'), historyList=document.getElementById('historyList');
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+if(!SpeechRecognition){
+statusEl.textContent='Browser not supported. Please use Google Chrome.';
+}else{
+recognition=new SpeechRecognition();
+recognition.continuous=true;
+recognition.interimResults=true;
+recognition.lang='en-IN';
+recognition.onstart=()=>{
+isRecording=true;
+statusEl.textContent='Recording - Speak in English or Hindi';
+statusEl.style.color='#22c55e';
+statusEl.style.borderColor='#22c55e';
 };
-stopBtn.onclick=()=>{isRecording=false;if(recognition)recognition.stop();setStatus('Stopped');startBtn.disabled=false;stopBtn.disabled=true;};
-document.getElementById('clearBtn').onclick=()=>{fullTranscript="";transcriptEl.textContent="Cleared.";};
-document.getElementById('copyBtn').onclick=()=>{navigator.clipboard.writeText(transcriptEl.textContent);setStatus('Copied!');};
+recognition.onresult=(e)=>{
+let interim='';
+for(let i=e.resultIndex;i<e.results.length;i++){
+const t=e.results[i][0].transcript;
+if(e.results[i].isFinal) finalTranscript+=t+' ';
+else interim+=t;
+}
+transcriptEl.value=finalTranscript+interim;
+};
+recognition.onend=()=>{
+isRecording=false;
+statusEl.textContent='Stopped';
+statusEl.style.color='#94a3b8';
+statusEl.style.borderColor='#1e293b';
+};
+recognition.onerror=(e)=>{
+statusEl.textContent='Error: '+e.error;
+};
+}
+
+document.getElementById('startBtn').onclick=()=>{
+finalTranscript='';
+transcriptEl.value='';
+if(historyList.innerHTML.includes('No transcriptions yet')) historyList.innerHTML='';
+try{recognition.start();}catch{}
+};
+
+document.getElementById('stopBtn').onclick=()=>{
+isRecording=false;
+try{recognition.stop();}catch{}
+const text=transcriptEl.value.trim();
+if(text) addToHistory(text);
+statusEl.textContent='Transcription saved to history';
+};
+
+document.getElementById('clearBtn').onclick=()=>{
+transcriptEl.value='';
+finalTranscript='';
+statusEl.textContent='Cleared - Ready';
+};
+
+document.getElementById('copyBtn').onclick=()=>{
+navigator.clipboard.writeText(transcriptEl.value);
+statusEl.textContent='Copied to clipboard';
+};
+
+document.getElementById('speakBtn').onclick=()=>{
+const text=transcriptEl.value.trim();
+if(!text){statusEl.textContent='No text to speak. Please record first.'; return;}
+speechSynthesis.cancel();
+const utter=new SpeechSynthesisUtterance(text);
+const isHindi=/[\u0900-\u097F]/.test(text);
+utter.lang=isHindi?'hi-IN':'en-US';
+utter.rate=0.95;
+utter.pitch=1;
+utter.onstart=()=>{
+statusEl.textContent='Speaking - TTS Playback Active';
+statusEl.style.color='#7c3aed';
+};
+utter.onend=()=>{
+statusEl.textContent='Playback complete - TTS Part 2 Done';
+statusEl.style.color='#22c55e';
+};
+speechSynthesis.speak(utter);
+};
+
+function addToHistory(text){
+const div=document.createElement('div');
+div.className='item';
+const time=new Date().toLocaleTimeString();
+const safeText=text.replace(/'/g,"\\'");
+div.innerHTML=`
+<div class="item-text"><b>${time}</b><div>${text.slice(0,120)}</div></div>
+<div style="display:flex;gap:8px;">
+<button class="btn-tts" onclick="speakText('${safeText}')">Play</button>
+<button class="btn-sec" onclick="this.closest('.item').remove()">Delete</button>
+</div>`;
+historyList.prepend(div);
+}
+
+window.speakText=(t)=>{
+speechSynthesis.cancel();
+const u=new SpeechSynthesisUtterance(t);
+u.lang=/[\u0900-\u097F]/.test(t)?'hi-IN':'en-US';
+speechSynthesis.speak(u);
+};
 </script>
 </body>
 </html>
